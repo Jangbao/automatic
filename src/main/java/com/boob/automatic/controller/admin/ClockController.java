@@ -1,6 +1,7 @@
 package com.boob.automatic.controller.admin;
 
 import com.boob.automatic.service.IClockService;
+import com.boob.automatic.util.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,17 +18,23 @@ public class ClockController {
     private IClockService clockService;
 
     @RequestMapping("run")
-    public void run() {
+    public Result run() {
         clockService.runClock();
+
+        return Result.success("run success");
     }
 
     @RequestMapping("shutdown")
-    public void shutdown() {
+    public Result shutdown() {
         clockService.shutDownClock();
+
+        return Result.success("shutdown success");
     }
 
     @RequestMapping("single_clock/{id}")
-    public void clockByUserId(@PathVariable(name = "id") Long id) {
+    public Result clockByUserId(@PathVariable(name = "id") Long id) {
         clockService.clock(id);
+
+        return Result.success("clock success");
     }
 }
