@@ -1,9 +1,10 @@
 package com.boob.automatic.handler;
 
-import com.boob.automatic.entity.FailClockResult;
-import com.boob.automatic.entity.SuccessClockResult;
+import com.boob.automatic.dao.ClockResultDao;
+import com.boob.automatic.entity.ClockResult;
 import com.boob.automatic.enums.ClockTypeEnum;
 import com.boob.automatic.util.Result;
+import com.boob.automatic.web.WebUtils;
 import com.boob.automatic.ytj.YTJRequest;
 
 /**
@@ -11,34 +12,34 @@ import com.boob.automatic.ytj.YTJRequest;
  */
 public class SingleClockResultHandler extends ClockResultHandler {
 
-    private SuccessClockResult successClockResult;
+    /**
+     * 处理结果
+     */
+    private ClockResult clockResult;
 
-    private FailClockResult failClockResult;
-
-    private boolean isSuccess;
+    public SingleClockResultHandler(ClockResultDao clockResultDao) {
+        super(clockResultDao);
+    }
 
     @Override
     public void handleSuccessResult(Result result, YTJRequest ytjRequest) {
-        successClockResult = handleSuccess(result, ytjRequest);
-        successClockResult.setClockType(ClockTypeEnum.SINGLE.getCode());
-        this.isSuccess = true;
+        clockResult = handleResult(result, ytjRequest)
+                .setOperateUserId(WebUtils.getUserId())
+                .setClockType(ClockTypeEnum.SINGLE.getCode())
+                .setSuccess(true);
     }
 
     @Override
     public void handleFailResult(Result result, YTJRequest ytjRequest) {
-        failClockResult = handleFail(result, ytjRequest);
-        failClockResult.setClockType(ClockTypeEnum.SINGLE.getCode());
-        this.isSuccess = false;
+        clockResult = handleResult(result, ytjRequest)
+                .setOperateUserId(WebUtils.getUserId())
+                .setClockType(ClockTypeEnum.SINGLE.getCode())
+                .setSuccess(false);
     }
 
     @Override
     public void doHandle() {
-        if (isSuccess) {
-            recordSuccess(successClockResult);
-        } else {
-            recordFail(failClockResult);
-        }
+        recordClockResult(clockResult);
     }
-
 
 }

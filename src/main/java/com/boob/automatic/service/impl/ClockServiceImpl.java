@@ -3,6 +3,7 @@ package com.boob.automatic.service.impl;
 import com.boob.automatic.contants.TimeConstants;
 import com.boob.automatic.dao.ClockConfigDao;
 import com.boob.automatic.dao.ClockInfoDao;
+import com.boob.automatic.dao.ClockResultDao;
 import com.boob.automatic.dao.ClockTokenDao;
 import com.boob.automatic.dao.UserDao;
 import com.boob.automatic.entity.ClockConfig;
@@ -21,8 +22,10 @@ import com.boob.automatic.ytj.YTJAddress;
 import com.boob.automatic.ytj.YTJClockEntity;
 import com.boob.automatic.ytj.YTJRequest;
 import com.boob.automatic.ytj.YTJRequestBuilder;
+import com.boob.automatic.ytj.YTJResult;
 import com.boob.automatic.ytj.YTJSend;
 import com.boob.automatic.ytj.YTJToken;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +33,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -43,6 +47,7 @@ import java.util.stream.Collectors;
  * @author jangbao - 2021/1/5 18:30
  */
 @Service
+@Log4j2
 public class ClockServiceImpl implements IClockService {
 
     @Value("${ytj.clock.url}")
@@ -60,10 +65,9 @@ public class ClockServiceImpl implements IClockService {
     @Autowired
     private UserDao userDao;
 
-    /**
-     * 打卡信息结果处理器
-     */
-    private ClockResultHandler clockResultHandler = null;
+    @Autowired
+    private ClockResultDao clockResultDao;
+
 
     /**
      * 是否已启动打卡
@@ -118,12 +122,24 @@ public class ClockServiceImpl implements IClockService {
     }
 
     @Override
-    public boolean clock(Long userId) {
+    public boolean isRunning() {
+        synchronized (lockObject) {
+            return isRunClock;
+        }
+    }
+
+    @Override
+    public YTJResult clock(Long userId) {
         User user = userDao.getOne(userId);
         ClockConfig clockConfig = clockConfigDao.findByUserId(userId);
         ClockInfo clockInfo = clockInfoDao.findByUserId(userId);
         ClockToken clockToken = clockTokenDao.findByUserId(userId);
-        return clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), false, new SingleClockResultHandler());
+
+        SingleClockResultHandler clockResultHandler = new SingleClockResultHandler(clockResultDao);
+        YTJResult ytjResult = clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), false, clockResultHandler);
+        clockResultHandler.doHandle();
+
+        return ytjResult;
     }
 
     /**
@@ -135,10 +151,12 @@ public class ClockServiceImpl implements IClockService {
         long timeToWait = TimeSlotEnum.MORNING.getTimeToWait();
         clockThreadPool.scheduleAtFixedRate(() -> {
             preProcess();
+            ClockResultHandler clockResultHandler = new GroupClockResultHandler(clockResultDao);
             List<YTJClockEntity> entities = getYtjClockEntities();
             for (YTJClockEntity entity : entities) {
-                clock(entity, true, this.clockResultHandler);
+                clock(entity, true, clockResultHandler);
             }
+            clockResultHandler.doHandle();
             postProcess();
         }, timeToWait, TimeConstants.ONE_DAY_TO_MILLIS, TimeUnit.SECONDS);
 
@@ -151,7 +169,7 @@ public class ClockServiceImpl implements IClockService {
      * @param groupClock         集体打卡
      * @param clockResultHandler 打卡结果处理器
      */
-    private boolean clock(YTJClockEntity entity, boolean groupClock, ClockResultHandler clockResultHandler) {
+    private YTJResult clock(YTJClockEntity entity, boolean groupClock, ClockResultHandler clockResultHandler) {
         YTJSend ytjSend = new YTJSend();
         YTJToken ytjToken = new YTJToken();
         //复制打卡信息
@@ -187,15 +205,14 @@ public class ClockServiceImpl implements IClockService {
      * 当日打卡前置处理
      */
     private void preProcess() {
-        this.clockResultHandler = new GroupClockResultHandler();
+        log.info("今日打卡开始 ---->");
     }
 
     /**
      * 当日打卡后置处理
      */
     private void postProcess() {
-        this.clockResultHandler.doHandle();
-        this.clockResultHandler = null;
+        log.info("今日打卡结束 > _ <");
     }
 
     /**

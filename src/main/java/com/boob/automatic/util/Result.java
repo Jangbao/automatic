@@ -15,13 +15,6 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Accessors(chain = true)
 public class Result {
-    private static final String SUCCESS_CODE = "200";
-
-    private static final String FAIL_CODE = "400";
-
-    private static final String SUCCESS_MESSAGE = "操作成功";
-
-    private static final String FAIL_MESSAGE = "操作失败";
 
     private String code;
 
@@ -30,34 +23,19 @@ public class Result {
     private Object data;
 
     public static Result success() {
-        return new Result(SUCCESS_CODE, SUCCESS_MESSAGE, null);
+        return new Result(ResultUtils.SUCCESS_CODE, ResultUtils.SUCCESS_MESSAGE, null);
     }
 
     public static Result fail() {
-        return new Result(FAIL_CODE, FAIL_MESSAGE, null);
+        return new Result(ResultUtils.FAIL_CODE, ResultUtils.FAIL_MESSAGE, null);
     }
 
     public static Result success(Object data) {
-        return new Result(SUCCESS_CODE, SUCCESS_MESSAGE, data);
+        return new Result(ResultUtils.SUCCESS_CODE, ResultUtils.SUCCESS_MESSAGE, data);
     }
 
     public static Result fail(Object data) {
-        return new Result(FAIL_CODE, FAIL_MESSAGE, data);
+        return new Result(ResultUtils.FAIL_CODE, ResultUtils.FAIL_MESSAGE, data);
     }
-
-    /**
-     * 操作成功
-     */
-    public boolean isSuccess() {
-        return SUCCESS_CODE.equals(this.code);
-    }
-
-    /**
-     * 操作失败
-     */
-    public boolean isFail() {
-        return FAIL_CODE.equals(this.code);
-    }
-
 
 }

@@ -1,15 +1,25 @@
 package com.boob.automatic.handler;
 
-import com.boob.automatic.entity.FailClockResult;
-import com.boob.automatic.entity.SuccessClockResult;
+import com.alibaba.fastjson.JSON;
+import com.boob.automatic.dao.ClockResultDao;
+import com.boob.automatic.entity.ClockResult;
 import com.boob.automatic.util.Result;
+import com.boob.automatic.util.ResultUtils;
 import com.boob.automatic.ytj.YTJRequest;
+import com.boob.automatic.ytj.YTJResult;
+
+import java.util.Date;
 
 /**
  * @author jangbao - 2021/1/16 23:03
  */
 public abstract class ClockResultHandler {
 
+    protected ClockResultDao clockResultDao;
+
+    public ClockResultHandler(ClockResultDao clockResultDao) {
+        this.clockResultDao = clockResultDao;
+    }
 
     /**
      * 处理打卡结果信息
@@ -18,13 +28,12 @@ public abstract class ClockResultHandler {
      * @param ytjRequest
      * @return
      */
-    public boolean handleClockResult(Result result, YTJRequest ytjRequest) {
-        if (result.isSuccess()) {
+    public YTJResult handleClockResult(Result result, YTJRequest ytjRequest) {
+        if (ResultUtils.isSuccess(result.getCode())) {
             handleSuccessResult(result, ytjRequest);
-            return true;
         }
         handleFailResult(result, ytjRequest);
-        return false;
+        return JSON.parseObject(result.getData().toString(), YTJResult.class);
     }
 
     /**
@@ -45,45 +54,30 @@ public abstract class ClockResultHandler {
 
 
     /**
-     * 真正做处理的类
+     * 真正做处理的方法
      */
     public abstract void doHandle();
 
 
     /**
-     * 处理成功打卡
+     * 处理打卡
      *
      * @param result
      * @param ytjRequest
      * @return
      */
-    protected SuccessClockResult handleSuccess(Result result, YTJRequest ytjRequest) {
-        return new SuccessClockResult();
-    }
-
-
-    /**
-     * 处理失败打卡
-     *
-     * @param result
-     * @param ytjRequest
-     * @return
-     */
-    protected FailClockResult handleFail(Result result, YTJRequest ytjRequest) {
-        return new FailClockResult();
+    protected ClockResult handleResult(Result result, YTJRequest ytjRequest) {
+        return new ClockResult()
+                .setRequestMessage(JSON.toJSONString(ytjRequest))
+                .setResponseMessage(JSON.toJSONString(result))
+                .setClockTime(new Date());
     }
 
     /**
-     * 记录成功打卡
+     * 记录打卡信息
      */
-    protected void recordSuccess(SuccessClockResult successClockResult) {
+    protected void recordClockResult(ClockResult clockResult) {
+        clockResultDao.save(clockResult);
     }
-
-    /**
-     * 记录失败打卡
-     */
-    protected void recordFail(FailClockResult failClockResult) {
-    }
-
 
 }

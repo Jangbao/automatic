@@ -29,7 +29,6 @@ public class ClockInfo extends BaseEntity implements Serializable {
     /**
      * 地址信息
      */
-
     @OneToOne
     @JoinColumn(name = "clock_address_id", referencedColumnName = "id")
     private ClockAddress address;

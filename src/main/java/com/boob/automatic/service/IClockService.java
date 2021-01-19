@@ -1,5 +1,7 @@
 package com.boob.automatic.service;
 
+import com.boob.automatic.ytj.YTJResult;
+
 /**
  * @author jangbao - 2021/1/5 18:30
  */
@@ -16,12 +18,19 @@ public interface IClockService {
     void shutDownClock();
 
     /**
+     * 是否在运行中
+     *
+     * @return
+     */
+    boolean isRunning();
+
+    /**
      * 给指定用户打卡
      *
      * @param userId 指定用户id
      * @return
      */
-    boolean clock(Long userId);
+    YTJResult clock(Long userId);
 
     /**
      * 撤销打卡用户
