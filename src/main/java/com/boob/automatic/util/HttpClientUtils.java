@@ -1,11 +1,8 @@
 package com.boob.automatic.util;
 
 import com.boob.automatic.builder.GetRequestBuilder;
-import com.boob.automatic.builder.GetRequestBuilder.GetSend;
 import com.boob.automatic.builder.PostFormRequestBuilder;
-import com.boob.automatic.builder.PostFormRequestBuilder.PostFormSend;
 import com.boob.automatic.builder.PostJsonRequestBuilder;
-import com.boob.automatic.builder.PostJsonRequestBuilder.PostJsonSend;
 import com.boob.automatic.builder.RequestBuilder;
 import lombok.extern.log4j.Log4j2;
 
@@ -144,7 +141,7 @@ public class HttpClientUtils {
 
             // 获取URLConnection对象对应的输出流
             out = new OutputStreamWriter(conn.getOutputStream(), DEFAULT_WRITE_ENCODE);
-            out.write(requestBuilder.getParam());
+            out.write(requestBuilder.builderParams());
             // flush输出流的缓冲
             out.flush();
             // 定义BufferedReader输入流来读取URL的响应

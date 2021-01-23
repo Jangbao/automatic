@@ -33,6 +33,12 @@ public class ClockResult extends BaseEntity implements Serializable {
     private String clockType;
 
     /**
+     * 打卡用户id
+     */
+    @Column(name = "clock_user_id")
+    private Long clockUserId;
+
+    /**
      * 请求消息 json
      */
     @Column(name = "request_message")

@@ -2,7 +2,7 @@ package com.boob.automatic.ytj;
 
 import com.boob.automatic.builder.HttpURLConnectionBuilder;
 import com.boob.automatic.builder.RequestBuilder;
-import com.boob.automatic.util.ParamUtils;
+import com.boob.automatic.util.SendUtils;
 
 import java.net.HttpURLConnection;
 
@@ -31,7 +31,7 @@ public class YTJRequestBuilder implements RequestBuilder {
     }
 
     @Override
-    public String getParam() {
-        return ParamUtils.jsonParam(ytjRequest.getYtjSend().getParams());
+    public String builderParams() {
+        return SendUtils.jsonParam(ytjRequest.getYtjSend().params());
     }
 }

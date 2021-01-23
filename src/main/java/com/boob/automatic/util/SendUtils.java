@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author jangbao - 2021/1/12 22:23
  */
-public class ParamUtils {
+public class SendUtils {
 
     private static final String PARAM_ENCODING = "UTF-8";
 

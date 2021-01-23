@@ -5,12 +5,12 @@ package com.boob.automatic.util;
  *
  * @author jangbao - 2021/1/11 13:38
  */
-public interface Send {
+public interface S<T> {
 
     /**
-     * 获取参数
+     * 获取请求参数
      *
      * @return
      */
-    <T> T getParams();
+    T params();
 }

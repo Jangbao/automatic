@@ -30,10 +30,13 @@ public class YTJClockEntity {
      * 打卡配置
      */
     private ClockConfig clockConfig;
+
+
     /**
      * 打卡信息
      */
     private ClockInfo clockInfo;
+
 
     /**
      * 打卡需要的token

@@ -1,7 +1,7 @@
 package com.boob.automatic.builder;
 
-import com.boob.automatic.util.ParamUtils;
-import com.boob.automatic.util.Send;
+import com.boob.automatic.util.GetSend;
+import com.boob.automatic.util.SendUtils;
 
 import java.net.HttpURLConnection;
 
@@ -22,25 +22,7 @@ public class GetRequestBuilder implements RequestBuilder {
     }
 
     @Override
-    public String getParam() {
-        return ParamUtils.getParam(this.send.getParams());
-    }
-
-    public static class GetSend implements Send {
-
-        private String params;
-
-        public GetSend() {
-            this("");
-        }
-
-        public GetSend(String params) {
-            this.params = params;
-        }
-
-        @Override
-        public String getParams() {
-            return params;
-        }
+    public String builderParams() {
+        return SendUtils.getParam(this.send.params());
     }
 }

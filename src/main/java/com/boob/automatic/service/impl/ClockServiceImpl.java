@@ -1,5 +1,6 @@
 package com.boob.automatic.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.boob.automatic.contants.TimeConstants;
 import com.boob.automatic.dao.ClockConfigDao;
 import com.boob.automatic.dao.ClockInfoDao;
@@ -33,7 +34,6 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -129,17 +129,17 @@ public class ClockServiceImpl implements IClockService {
     }
 
     @Override
-    public YTJResult clock(Long userId) {
+    public Result clock(Long userId) {
         User user = userDao.getOne(userId);
         ClockConfig clockConfig = clockConfigDao.findByUserId(userId);
         ClockInfo clockInfo = clockInfoDao.findByUserId(userId);
         ClockToken clockToken = clockTokenDao.findByUserId(userId);
 
         SingleClockResultHandler clockResultHandler = new SingleClockResultHandler(clockResultDao);
-        YTJResult ytjResult = clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), false, clockResultHandler);
+        Result result = clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), false, clockResultHandler);
         clockResultHandler.doHandle();
 
-        return ytjResult;
+        return result;
     }
 
     /**
@@ -169,7 +169,7 @@ public class ClockServiceImpl implements IClockService {
      * @param groupClock         集体打卡
      * @param clockResultHandler 打卡结果处理器
      */
-    private YTJResult clock(YTJClockEntity entity, boolean groupClock, ClockResultHandler clockResultHandler) {
+    private Result clock(YTJClockEntity entity, boolean groupClock, ClockResultHandler clockResultHandler) {
         YTJSend ytjSend = new YTJSend();
         YTJToken ytjToken = new YTJToken();
         //复制打卡信息
@@ -197,15 +197,17 @@ public class ClockServiceImpl implements IClockService {
 
         Result result = HttpClientUtils.sendCustomize(ytjClockUrl, new YTJRequestBuilder(ytjRequest));
 
+        YTJResult ytjResult = JSON.parseObject(result.getData().toString(), YTJResult.class);
         //处理请求结果
-        return clockResultHandler.handleClockResult(result, ytjRequest);
+        clockResultHandler.handleClockResult(ytjResult, ytjRequest, entity.getUser());
+        return result.setData("");
     }
 
     /**
      * 当日打卡前置处理
      */
     private void preProcess() {
-        log.info("今日打卡开始 ---->");
+        log.info("今日打卡开始 ----->");
     }
 
     /**

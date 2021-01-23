@@ -1,6 +1,6 @@
 package com.boob.automatic.service;
 
-import com.boob.automatic.ytj.YTJResult;
+import com.boob.automatic.util.Result;
 
 /**
  * @author jangbao - 2021/1/5 18:30
@@ -30,7 +30,7 @@ public interface IClockService {
      * @param userId 指定用户id
      * @return
      */
-    YTJResult clock(Long userId);
+    Result clock(Long userId);
 
     /**
      * 撤销打卡用户

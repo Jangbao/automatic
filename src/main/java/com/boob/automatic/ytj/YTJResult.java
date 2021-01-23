@@ -1,5 +1,6 @@
 package com.boob.automatic.ytj;
 
+import com.boob.automatic.util.R;
 import lombok.Data;
 
 /**
@@ -7,12 +8,14 @@ import lombok.Data;
  * @author jangbao - 2021/1/19 22:39
  */
 @Data
-public class YTJResult {
+public class YTJResult implements R {
 
     private String code;
 
     private String msg;
 
     private String errors;
+
+    private String data;
 
 }

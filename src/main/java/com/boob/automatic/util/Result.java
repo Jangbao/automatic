@@ -14,11 +14,11 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class Result {
+public class Result implements R {
 
     private String code;
 
-    private String message;
+    private String msg;
 
     private Object data;
 

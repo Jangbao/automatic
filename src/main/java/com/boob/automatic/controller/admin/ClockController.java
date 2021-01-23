@@ -2,7 +2,6 @@ package com.boob.automatic.controller.admin;
 
 import com.boob.automatic.service.IClockService;
 import com.boob.automatic.util.Result;
-import com.boob.automatic.ytj.YTJResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,7 +45,7 @@ public class ClockController {
     }
 
     @RequestMapping("single_clock/{id}")
-    public YTJResult clockByUserId(@PathVariable(name = "id") Long id) {
+    public Result clockByUserId(@PathVariable(name = "id") Long id) {
         return clockService.clock(id);
     }
 }

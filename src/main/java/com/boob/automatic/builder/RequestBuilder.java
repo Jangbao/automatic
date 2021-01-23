@@ -19,5 +19,5 @@ public interface RequestBuilder {
      *
      * @return
      */
-    String getParam();
+    String builderParams();
 }

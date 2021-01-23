@@ -88,8 +88,8 @@ public enum TimeSlotEnum {
      * @return
      */
     public Date getClockTime() {
-        GregorianCalendar calendar = new GregorianCalendar();
-        int year = calendar.get(Calendar.YEAR) - TimeConstants.START_YEAR;
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         // 获取随机时间
@@ -111,7 +111,12 @@ public enum TimeSlotEnum {
      * @return
      */
     public long getTimeToWait() {
-        return (this.getClockTime().getTime() - System.currentTimeMillis()) / TimeConstants.MILLI_SECOND_GAP;
+
+        long clockTime = getClockTime().getTime();
+        long currentTime = System.currentTimeMillis();
+
+        long timeToWait = (clockTime - currentTime) / TimeConstants.MILLI_SECOND_GAP;
+        return timeToWait;
     }
 
 }

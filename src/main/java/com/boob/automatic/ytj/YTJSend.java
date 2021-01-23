@@ -1,6 +1,6 @@
 package com.boob.automatic.ytj;
 
-import com.boob.automatic.util.Send;
+import com.boob.automatic.util.S;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 @Data
 @Accessors(chain = true)
-public class YTJSend implements Send, Serializable {
+public class YTJSend implements S, Serializable {
 
     /**
      * 地址信息
@@ -41,7 +41,7 @@ public class YTJSend implements Send, Serializable {
 
 
     @Override
-    public Object getParams() {
+    public Object params() {
         return this;
     }
 }

@@ -1,7 +1,7 @@
 package com.boob.automatic.builder;
 
-import com.boob.automatic.util.ParamUtils;
-import com.boob.automatic.util.Send;
+import com.boob.automatic.util.SendUtils;
+import com.boob.automatic.util.PostJsonSend;
 
 import java.net.HttpURLConnection;
 
@@ -22,21 +22,7 @@ public class PostJsonRequestBuilder implements RequestBuilder {
     }
 
     @Override
-    public String getParam() {
-        return ParamUtils.jsonParam(this.send.getParams());
-    }
-
-    public static class PostJsonSend implements Send {
-
-        private Object params;
-
-        public PostJsonSend(Object params) {
-            this.params = params;
-        }
-
-        @Override
-        public Object getParams() {
-            return params;
-        }
+    public String builderParams() {
+        return SendUtils.jsonParam(this.send.params());
     }
 }

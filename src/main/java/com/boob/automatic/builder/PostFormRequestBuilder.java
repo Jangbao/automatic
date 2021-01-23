@@ -1,10 +1,9 @@
 package com.boob.automatic.builder;
 
-import com.boob.automatic.util.ParamUtils;
-import com.boob.automatic.util.Send;
+import com.boob.automatic.util.SendUtils;
+import com.boob.automatic.util.PostFormSend;
 
 import java.net.HttpURLConnection;
-import java.util.Map;
 
 /**
  * @author jangbao - 2021/1/11 13:14
@@ -23,21 +22,7 @@ public class PostFormRequestBuilder implements RequestBuilder {
     }
 
     @Override
-    public String getParam() {
-        return ParamUtils.formParam(this.send.getParams());
-    }
-
-    public static class PostFormSend implements Send {
-
-        private Map<String, String> params;
-
-        public PostFormSend(Map<String, String> params) {
-            this.params = params;
-        }
-
-        @Override
-        public Map<String, String> getParams() {
-            return params;
-        }
+    public String builderParams() {
+        return SendUtils.formParam(this.send.params());
     }
 }
