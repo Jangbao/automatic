@@ -24,10 +24,10 @@ public class BaseEntity implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "create_time", updatable = false)
+    @Column(name = "create_time", insertable = false, updatable = false)
     private Date createTime;
 
-    @Column(name = "update_time", insertable = false)
+    @Column(name = "update_time", insertable = false, updatable = false)
     private Date updateTime;
 
     @Column(name = "is_deleted")
