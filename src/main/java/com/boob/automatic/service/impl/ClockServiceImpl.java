@@ -158,7 +158,7 @@ public class ClockServiceImpl implements IClockService {
             }
             clockResultHandler.doHandle();
             postProcess();
-        }, timeToWait, TimeConstants.ONE_DAY_TO_MILLIS, TimeUnit.SECONDS);
+        }, timeToWait, TimeConstants.ONE_DAY_TO_SECOND, TimeUnit.SECONDS);
 
     }
 

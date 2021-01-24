@@ -8,12 +8,6 @@ package com.boob.automatic.contants;
 public class TimeConstants {
 
     /**
-     * 一天等于多少秒
-     */
-    public static final int ONE_DAY_TO_MILLIS = 1000 * 60 * 60 * 24;
-
-
-    /**
      * 计算机初始年份
      */
     public static final int START_YEAR = 1900;
@@ -42,5 +36,17 @@ public class TimeConstants {
      * 一秒有多少毫秒
      */
     public static final int MILLI_SECOND_GAP = 1000;
+
+
+    /**
+     * 一天等于多少秒
+     */
+    public static final int ONE_DAY_TO_SECOND = 60 * 60 * 24;
+
+    /**
+     * 一天等于多少毫秒
+     */
+    public static final int ONE_DAY_TO_MILLIS = ONE_DAY_TO_SECOND * MILLI_SECOND_GAP;
+
 
 }
