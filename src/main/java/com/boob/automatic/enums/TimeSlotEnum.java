@@ -1,11 +1,10 @@
 package com.boob.automatic.enums;
 
-import com.boob.automatic.contants.TimeConstants;
+import com.boob.automatic.constants.TimeConstants;
 
 import java.util.Calendar;
 import java.util.Calendar.Builder;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.Random;
 
 /**

@@ -1,7 +1,7 @@
 package com.boob.automatic.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.boob.automatic.contants.TimeConstants;
+import com.boob.automatic.constants.TimeConstants;
 import com.boob.automatic.dao.ClockConfigDao;
 import com.boob.automatic.dao.ClockInfoDao;
 import com.boob.automatic.dao.ClockResultDao;
@@ -98,6 +98,7 @@ public class ClockServiceImpl implements IClockService {
     public void runClock() {
         synchronized (lockObject) {
             if (isRunClock) {
+                log.info("打卡功能已经处于开启状态，无须进行开启 ...");
                 return;
             }
             //创建线程池
@@ -105,6 +106,7 @@ public class ClockServiceImpl implements IClockService {
             //给所有用户打卡如果必要
             clockAllIfUserEnable();
             isRunClock = true;
+            log.info("启动打卡功能 ...");
         }
     }
 
@@ -112,18 +114,22 @@ public class ClockServiceImpl implements IClockService {
     public void shutDownClock() {
         synchronized (lockObject) {
             if (!isRunClock) {
+                log.info("打卡功能已经处于关闭状态，无须进行关闭 ...");
                 return;
             }
             if (!clockThreadPool.isShutdown()) {
                 clockThreadPool.shutdown();
             }
             isRunClock = false;
+            log.info("关闭打卡功能 ...");
         }
     }
 
     @Override
     public boolean isRunning() {
         synchronized (lockObject) {
+            String status = isRunClock ? "开启" : "关闭";
+            log.info("打卡功能处于" + status + "状态 ...");
             return isRunClock;
         }
     }
@@ -150,14 +156,18 @@ public class ClockServiceImpl implements IClockService {
         //每天早上开始打卡
         long timeToWait = TimeSlotEnum.MORNING.getTimeToWait();
         clockThreadPool.scheduleAtFixedRate(() -> {
-            preProcess();
-            ClockResultHandler clockResultHandler = new GroupClockResultHandler(clockResultDao);
-            List<YTJClockEntity> entities = getYtjClockEntities();
-            for (YTJClockEntity entity : entities) {
-                clock(entity, true, clockResultHandler);
+            try {
+                preProcess();
+                ClockResultHandler clockResultHandler = new GroupClockResultHandler(clockResultDao);
+                List<YTJClockEntity> entities = getYtjClockEntities();
+                for (YTJClockEntity entity : entities) {
+                    clock(entity, true, clockResultHandler);
+                }
+                clockResultHandler.doHandle();
+                postProcess();
+            } catch (Exception e) {
+                log.error(e);
             }
-            clockResultHandler.doHandle();
-            postProcess();
         }, timeToWait, TimeConstants.ONE_DAY_TO_SECOND, TimeUnit.SECONDS);
 
     }

@@ -1,4 +1,4 @@
-package com.boob.automatic.contants;
+package com.boob.automatic.constants;
 
 /**
  * 时间常量

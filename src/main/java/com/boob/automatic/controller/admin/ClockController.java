@@ -21,27 +21,27 @@ public class ClockController {
     public Result run() {
         clockService.runClock();
         if (clockService.isRunning()) {
-            return Result.success("run success");
+            return Result.success("开启打卡成功");
         }
-        return Result.fail("run fail");
+        return Result.fail("开启打卡失败");
     }
 
     @RequestMapping("shutdown")
     public Result shutdown() {
         clockService.shutDownClock();
         if (clockService.isRunning()) {
-            return Result.fail("shutdown fail");
+            return Result.fail("关闭打卡失败");
         }
-        return Result.success("shutdown success");
+        return Result.success("关闭打卡成功");
 
     }
 
     @RequestMapping("is_running")
     public Result isRunning() {
         if (clockService.isRunning()) {
-            return Result.success("is running");
+            return Result.success("打卡功能开启");
         }
-        return Result.success("not running");
+        return Result.success("打卡功能未开启");
     }
 
     @RequestMapping("single_clock/{id}")
