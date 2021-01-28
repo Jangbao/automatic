@@ -39,9 +39,18 @@ public class TimeConstants {
 
 
     /**
+     * 一小时等于多少秒
+     */
+    public static final int ONE_HOUR_TO_SECOND = 60 * 60;
+    /**
+     * 一小时等于多少秒
+     */
+    public static final int ONE_HOUR_TO_MILLIS = ONE_HOUR_TO_SECOND * MILLI_SECOND_GAP;
+
+    /**
      * 一天等于多少秒
      */
-    public static final int ONE_DAY_TO_SECOND = 60 * 60 * 24;
+    public static final int ONE_DAY_TO_SECOND = ONE_HOUR_TO_SECOND * 24;
 
     /**
      * 一天等于多少毫秒

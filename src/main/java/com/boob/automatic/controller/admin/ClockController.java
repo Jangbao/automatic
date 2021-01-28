@@ -46,6 +46,26 @@ public class ClockController {
 
     @RequestMapping("single_clock/{id}")
     public Result clockByUserId(@PathVariable(name = "id") Long id) {
-        return clockService.clock(id);
+        return Result.success(clockService.clockByUserId(id));
+    }
+
+    @RequestMapping("today_group_clock_info")
+    public Result todayGroupClockInfo() {
+        return Result.success(clockService.todayGroupClockInfo());
+    }
+
+    @RequestMapping("today_single_clock_info")
+    public Result todaySingleClockInfo() {
+        return Result.success(clockService.todaySingleClockInfo());
+    }
+
+    @RequestMapping("today_user_clock_info/{id}")
+    public Result todayUserClockInfo(@PathVariable(name = "id") Long id) {
+        return Result.success(clockService.todayUserClockInfo(id));
+    }
+
+    @RequestMapping("user_clock_info/{id}")
+    public Result userClockInfo(@PathVariable(name = "id") Long id) {
+        return Result.success(clockService.userClockInfo(id));
     }
 }

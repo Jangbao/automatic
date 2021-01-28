@@ -2,10 +2,6 @@ package com.boob.automatic.handler;
 
 import com.boob.automatic.dao.ClockResultDao;
 import com.boob.automatic.entity.ClockResult;
-import com.boob.automatic.entity.User;
-import com.boob.automatic.enums.ClockTypeEnum;
-import com.boob.automatic.ytj.YTJRequest;
-import com.boob.automatic.ytj.YTJResult;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
@@ -35,25 +31,13 @@ public class GroupClockResultHandler extends ClockResultHandler {
     }
 
     @Override
-    public void handleSuccessResult(YTJResult ytjResult, YTJRequest ytjRequest, User user) {
-        ClockResult successClockResult = handleResult(ytjResult, ytjRequest)
-                //设置操作人id为0，自动操作
-                .setOperateUserId(0L)
-                .setClockType(ClockTypeEnum.GROUP.getCode())
-                .setClockUserId(user.getId())
-                .setSuccess(true);
-        successClockResults.add(successClockResult);
+    public void handleSuccessResult(ClockResult clockResult) {
+        successClockResults.add(clockResult);
     }
 
     @Override
-    public void handleFailResult(YTJResult ytjResult, YTJRequest ytjRequest, User user) {
-        ClockResult failClockResult = handleResult(ytjResult, ytjRequest)
-                //设置操作人id为0，自动操作
-                .setOperateUserId(0L)
-                .setClockType(ClockTypeEnum.GROUP.getCode())
-                .setClockUserId(user.getId())
-                .setSuccess(false);
-        failClockResultList.add(failClockResult);
+    public void handleFailResult(ClockResult clockResult) {
+        failClockResultList.add(clockResult);
     }
 
     @Override

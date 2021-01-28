@@ -9,16 +9,21 @@ import com.boob.automatic.dao.ClockTokenDao;
 import com.boob.automatic.dao.UserDao;
 import com.boob.automatic.entity.ClockConfig;
 import com.boob.automatic.entity.ClockInfo;
+import com.boob.automatic.entity.ClockResult;
 import com.boob.automatic.entity.ClockToken;
 import com.boob.automatic.entity.User;
+import com.boob.automatic.enums.ClockTypeEnum;
 import com.boob.automatic.enums.OnOffEnum;
 import com.boob.automatic.enums.TimeSlotEnum;
 import com.boob.automatic.handler.ClockResultHandler;
 import com.boob.automatic.handler.GroupClockResultHandler;
 import com.boob.automatic.handler.SingleClockResultHandler;
 import com.boob.automatic.service.IClockService;
+import com.boob.automatic.util.DateUtils;
 import com.boob.automatic.util.HttpClientUtils;
 import com.boob.automatic.util.Result;
+import com.boob.automatic.util.ThreadUtils;
+import com.boob.automatic.web.WebUtils;
 import com.boob.automatic.ytj.YTJAddress;
 import com.boob.automatic.ytj.YTJClockEntity;
 import com.boob.automatic.ytj.YTJRequest;
@@ -34,9 +39,9 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -68,12 +73,6 @@ public class ClockServiceImpl implements IClockService {
     @Autowired
     private ClockResultDao clockResultDao;
 
-
-    /**
-     * 是否已启动打卡
-     */
-    private boolean isRunClock = false;
-
     /**
      * 并发启动打卡锁
      */
@@ -97,30 +96,26 @@ public class ClockServiceImpl implements IClockService {
     @Override
     public void runClock() {
         synchronized (lockObject) {
-            if (isRunClock) {
-                log.info("打卡功能已经处于开启状态，无须进行开启 ...");
+            if (clockThreadPool == null || clockThreadPool.isShutdown()) {
+                //创建线程池
+                clockThreadPool = new ScheduledThreadPoolExecutor(1, new CustomizableThreadFactory("clock-scheduled-pool-%d"));
+                //给所有用户打卡如果必要
+                clockAllIfUserEnable();
+                log.info("启动打卡功能 ...");
                 return;
             }
-            //创建线程池
-            clockThreadPool = new ScheduledThreadPoolExecutor(1, new CustomizableThreadFactory("clock-scheduled-pool-%d"));
-            //给所有用户打卡如果必要
-            clockAllIfUserEnable();
-            isRunClock = true;
-            log.info("启动打卡功能 ...");
+            log.info("打卡功能已经处于开启状态，无须进行开启 ...");
         }
     }
 
     @Override
     public void shutDownClock() {
         synchronized (lockObject) {
-            if (!isRunClock) {
+            if (clockThreadPool.isShutdown()) {
                 log.info("打卡功能已经处于关闭状态，无须进行关闭 ...");
                 return;
             }
-            if (!clockThreadPool.isShutdown()) {
-                clockThreadPool.shutdown();
-            }
-            isRunClock = false;
+            clockThreadPool.shutdown();
             log.info("关闭打卡功能 ...");
         }
     }
@@ -128,24 +123,56 @@ public class ClockServiceImpl implements IClockService {
     @Override
     public boolean isRunning() {
         synchronized (lockObject) {
-            String status = isRunClock ? "开启" : "关闭";
+            boolean isShutdown = clockThreadPool.isShutdown();
+            String status = !isShutdown ? "开启" : "关闭";
             log.info("打卡功能处于" + status + "状态 ...");
-            return isRunClock;
+            return !isShutdown;
         }
     }
 
     @Override
-    public Result clock(Long userId) {
+    public String clockByUserId(Long userId) {
         User user = userDao.getOne(userId);
         ClockConfig clockConfig = clockConfigDao.findByUserId(userId);
         ClockInfo clockInfo = clockInfoDao.findByUserId(userId);
         ClockToken clockToken = clockTokenDao.findByUserId(userId);
 
         SingleClockResultHandler clockResultHandler = new SingleClockResultHandler(clockResultDao);
-        Result result = clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), false, clockResultHandler);
+        ClockResult clockResult = clock(new YTJClockEntity(user, clockConfig, clockInfo, clockToken), ClockTypeEnum.SINGLE);
+        clockResultHandler.handleClockResult(clockResult);
         clockResultHandler.doHandle();
 
-        return result;
+        return clockResult.getResponseMessage();
+    }
+
+    @Override
+    public List<ClockResult> todayGroupClockInfo() {
+        return todayInfoByClockType(ClockTypeEnum.GROUP);
+    }
+
+    @Override
+    public List<ClockResult> todaySingleClockInfo() {
+        return todayInfoByClockType(ClockTypeEnum.SINGLE);
+    }
+
+
+    @Override
+    public List<ClockResult> todayUserClockInfo(Long userId) {
+        return clockResultDao.findByClockUserIdAndClockTimeGreaterThan(userId, DateUtils.today());
+    }
+
+    @Override
+    public List<ClockResult> userClockInfo(Long userId) {
+        return clockResultDao.findByClockUserId(userId);
+    }
+
+    /**
+     * 通过打卡类型今天打卡的信息
+     *
+     * @param clockTypeEnum 打卡类型
+     */
+    private List<ClockResult> todayInfoByClockType(ClockTypeEnum clockTypeEnum) {
+        return clockResultDao.findByClockTypeAndClockTimeGreaterThan(clockTypeEnum.getCode(), DateUtils.today());
     }
 
     /**
@@ -161,7 +188,8 @@ public class ClockServiceImpl implements IClockService {
                 ClockResultHandler clockResultHandler = new GroupClockResultHandler(clockResultDao);
                 List<YTJClockEntity> entities = getYtjClockEntities();
                 for (YTJClockEntity entity : entities) {
-                    clock(entity, true, clockResultHandler);
+                    ClockResult clockResult = clock(entity, ClockTypeEnum.GROUP);
+                    clockResultHandler.handleClockResult(clockResult);
                 }
                 clockResultHandler.doHandle();
                 postProcess();
@@ -175,42 +203,37 @@ public class ClockServiceImpl implements IClockService {
     /**
      * 给用户打卡
      *
-     * @param entity             打卡需要的信息
-     * @param groupClock         集体打卡
-     * @param clockResultHandler 打卡结果处理器
+     * @param entity        打卡需要的信息
+     * @param clockTypeEnum 打卡类型
      */
-    private Result clock(YTJClockEntity entity, boolean groupClock, ClockResultHandler clockResultHandler) {
-        YTJSend ytjSend = new YTJSend();
-        YTJToken ytjToken = new YTJToken();
-        //复制打卡信息
-        ClockInfo clockInfo = entity.getClockInfo();
-        BeanUtils.copyProperties(clockInfo, ytjSend);
+    private ClockResult clock(YTJClockEntity entity, ClockTypeEnum clockTypeEnum) {
+        ClockResult clockResult = new ClockResult();
+        //设置操作人为当前用户
+        clockResult.setOperateUserId(WebUtils.getUserId());
 
-        //复制地址
-        YTJAddress ytjAddress = new YTJAddress();
-        BeanUtils.copyProperties(clockInfo.getAddress(), ytjAddress);
-        ytjSend.setAddress(ytjAddress);
-
-        //复制token
-        BeanUtils.copyProperties(entity.getClockToken(), ytjToken);
+        YTJRequest ytjRequest = getYtjRequestByYTJClockEntity(entity);
         //如果是集体打卡
-        if (groupClock) {
-            Random random = new Random();
-            try {
-                //等待随机秒数后继续下一次打卡
-                TimeUnit.SECONDS.sleep(random.nextInt(TimeConstants.SECOND_GAP));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        if (ClockTypeEnum.GROUP.equals(clockTypeEnum)) {
+            //睡眠一段时间,避免连续发请求
+            ThreadUtils.sleepSecondsRandom(TimeConstants.MILLI_SECOND_GAP);
+            //集体打卡操作人id 为0
+            clockResult.setOperateUserId(0L);
         }
-        YTJRequest ytjRequest = new YTJRequest(ytjSend, ytjToken);
 
+        //发送打卡请求
         Result result = HttpClientUtils.sendCustomize(ytjClockUrl, new YTJRequestBuilder(ytjRequest));
 
+        //解析请求结果
         YTJResult ytjResult = JSON.parseObject(result.getData().toString(), YTJResult.class);
-        //处理请求结果
-        clockResultHandler.handleClockResult(ytjResult, ytjRequest, entity.getUser());
-        return result.setData("");
+
+        //打卡结果设置
+        clockResult.setRequestMessage(JSON.toJSONString(ytjRequest))
+                .setResponseMessage(JSON.toJSONString(ytjResult))
+                .setClockTime(new Date())
+                .setClockType(clockTypeEnum.getCode())
+                .setClockUserId(entity.getUser().getId());
+
+        return clockResult;
     }
 
     /**
@@ -260,6 +283,28 @@ public class ClockServiceImpl implements IClockService {
             entities.add(new YTJClockEntity(user, clockConfig, clockInfo, clockToken));
         }
         return entities;
+    }
+
+    /**
+     * 通过YTJClockEntity 获取 ytjClockRequest
+     *
+     * @param entity
+     */
+    private YTJRequest getYtjRequestByYTJClockEntity(YTJClockEntity entity) {
+        YTJSend ytjSend = new YTJSend();
+        YTJToken ytjToken = new YTJToken();
+        //复制打卡信息
+        ClockInfo clockInfo = entity.getClockInfo();
+        BeanUtils.copyProperties(clockInfo, ytjSend);
+
+        //复制地址
+        YTJAddress ytjAddress = new YTJAddress();
+        BeanUtils.copyProperties(clockInfo.getAddress(), ytjAddress);
+        ytjSend.setAddress(ytjAddress);
+
+        //复制token
+        BeanUtils.copyProperties(entity.getClockToken(), ytjToken);
+        return new YTJRequest(ytjSend, ytjToken);
     }
 
 }
