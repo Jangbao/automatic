@@ -96,7 +96,7 @@ public class ClockServiceImpl implements IClockService {
     @Override
     public void runClock() {
         synchronized (lockObject) {
-            if (clockThreadPool == null || clockThreadPool.isShutdown()) {
+            if (threadPoolNotUsable()) {
                 //创建线程池
                 clockThreadPool = new ScheduledThreadPoolExecutor(1, new CustomizableThreadFactory("clock-scheduled-pool-%d"));
                 //给所有用户打卡如果必要
@@ -111,7 +111,7 @@ public class ClockServiceImpl implements IClockService {
     @Override
     public void shutDownClock() {
         synchronized (lockObject) {
-            if (clockThreadPool.isShutdown()) {
+            if (threadPoolNotUsable()) {
                 log.info("打卡功能已经处于关闭状态，无须进行关闭 ...");
                 return;
             }
@@ -123,8 +123,8 @@ public class ClockServiceImpl implements IClockService {
     @Override
     public boolean isRunning() {
         synchronized (lockObject) {
-            boolean isShutdown = clockThreadPool.isShutdown();
-            String status = !isShutdown ? "开启" : "关闭";
+            boolean isShutdown = threadPoolNotUsable();
+            String status = isShutdown ? "关闭" : "开启";
             log.info("打卡功能处于" + status + "状态 ...");
             return !isShutdown;
         }
@@ -165,6 +165,15 @@ public class ClockServiceImpl implements IClockService {
     public List<ClockResult> userClockInfo(Long userId) {
         return clockResultDao.findByClockUserId(userId);
     }
+
+
+    /**
+     * 线程池是否可用
+     */
+    private boolean threadPoolNotUsable() {
+        return clockThreadPool == null || clockThreadPool.isShutdown();
+    }
+
 
     /**
      * 通过打卡类型今天打卡的信息
