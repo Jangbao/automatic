@@ -42,6 +42,7 @@ public class TimeConstants {
      * 一小时等于多少秒
      */
     public static final int ONE_HOUR_TO_SECOND = 60 * 60;
+
     /**
      * 一小时等于多少秒
      */

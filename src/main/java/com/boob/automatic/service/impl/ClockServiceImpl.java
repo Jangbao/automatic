@@ -189,8 +189,10 @@ public class ClockServiceImpl implements IClockService {
      */
     private void clockAllIfUserEnable() {
 
-        //每天早上开始打卡
-        long timeToWait = TimeSlotEnum.MORNING.getTimeToWait();
+        //明天早上开始打卡
+        Date clockTime = DateUtils.tomorrowTimeSlot(TimeSlotEnum.MORNING);
+        log.info("首次打卡时间：" + DateUtils.format(clockTime));
+
         clockThreadPool.scheduleAtFixedRate(() -> {
             try {
                 preProcess();
@@ -205,7 +207,7 @@ public class ClockServiceImpl implements IClockService {
             } catch (Exception e) {
                 log.error(e);
             }
-        }, timeToWait, TimeConstants.ONE_DAY_TO_SECOND, TimeUnit.SECONDS);
+        }, DateUtils.getTimeToWait(clockTime), TimeConstants.ONE_DAY_TO_MILLIS, TimeUnit.MILLISECONDS);
 
     }
 

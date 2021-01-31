@@ -57,6 +57,14 @@ public enum TimeSlotEnum {
         return code;
     }
 
+    public int getStartTime() {
+        return startTime;
+    }
+
+    public int getEndTime() {
+        return endTime;
+    }
+
     /**
      * 根据code 获取 timeSlotEnum
      *
@@ -72,50 +80,5 @@ public enum TimeSlotEnum {
         return MORNING;
     }
 
-    /**
-     * 枚举类型数量
-     *
-     * @return
-     */
-    public static int typeNum() {
-        return TimeSlotEnum.values().length;
-    }
-
-    /**
-     * 获取随机打卡时间
-     *
-     * @return
-     */
-    public Date getClockTime() {
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-        // 获取随机时间
-        Random random = new Random();
-        int hour = random.nextInt(endTime - startTime) + startTime;
-        int second = random.nextInt(TimeConstants.SECOND_GAP);
-        int millisSecond = random.nextInt(TimeConstants.MILLI_SECOND_GAP);
-
-        return new Builder()
-                .setDate(year, month, day)
-                .setTimeOfDay(hour, second, millisSecond)
-                .build()
-                .getTime();
-    }
-
-    /**
-     * 获取到达打卡时间需要等待的时间(单位 秒)
-     *
-     * @return
-     */
-    public long getTimeToWait() {
-
-        long clockTime = getClockTime().getTime();
-        long currentTime = System.currentTimeMillis();
-
-        long timeToWait = (clockTime - currentTime) / TimeConstants.MILLI_SECOND_GAP;
-        return timeToWait;
-    }
 
 }
