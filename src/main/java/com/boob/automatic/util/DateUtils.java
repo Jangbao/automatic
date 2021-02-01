@@ -20,9 +20,14 @@ public class DateUtils {
     private static Logger log = LoggerFactory.getLogger(DateUtils.class);
 
     /**
+     * 默认时区
+     */
+    public static final String DEFAULT_TIME_ZONE = "GMT+8";
+
+    /**
      * 默认时间格式
      */
-    private static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    public static final String DEFAULT_DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * 格式化时间
